@@ -1,0 +1,1 @@
+2d shooting games developed using pixijs , typescript and webpack
