@@ -59,11 +59,16 @@ export class PIXISceneTimers {
 
 }
 
+
+export interface PIXIAnimatable {
+    update: (timeDelta: number) => void;
+}
+
 //base scene class to manage seperate demos
 export class PIXIScene extends PIXI.Container {
     public engine: AppEngine
     public timers: PIXISceneTimers = new PIXISceneTimers()
-
+    public animatables: PIXIAnimatable[] = []
 
     public constructor(engine: AppEngine) {
         super()
@@ -73,11 +78,20 @@ export class PIXIScene extends PIXI.Container {
 
     }
     public update(timeDelta: number) {
-        this.timers.update(this.engine.clock)
+        this.timers.update(this.engine.clock);
+
+        for (let i = 0; i < this.animatables.length; i++) {
+            this.animatables[i].update(timeDelta)
+        }
+
     }
     public resize(width: number, height: number) {
     }
 
+    public addAnimateables(...items: PIXIAnimatable[]) {
+        for (let i = 0; i < items.length; i++)
+            this.animatables.push(items[i])
+    }
 
     public build(resources: Partial<Record<string, PIXI.LoaderResource>>) {
 
@@ -98,7 +112,7 @@ export class AppEngine {
     public loader: PIXI.Loader;
     public renderer: PIXI.Renderer;
     public container: HTMLElement
-
+    public active: boolean = true
     public currentScene: PIXIScene | undefined = undefined
     public scenes = new Map<string, PIXIScene>()
     private requiredTimeDelta: number = 1 / 60
@@ -161,11 +175,19 @@ export class AppEngine {
         const tick = () => {
 
             requestAnimationFrame(tick);
+
+            if (!this.active) return
             currentTime = performance.now() * 0.001;
             currentTimeDelta = currentTime - lastTime;
+
             if (currentTimeDelta < this.requiredTimeDelta) {
                 return
             }
+
+            currentTimeDelta = Math.max(this.requiredTimeDelta, currentTimeDelta)
+            currentTimeDelta = Math.min(this.requiredTimeDelta * 2, currentTimeDelta)
+
+
             if (currentTime - lastFpsTime > 1) {
                 this.currentFps = fpsCounter;
                 lastFpsTime = currentTime - ((currentTime - lastFpsTime) % this.requiredTimeDelta);

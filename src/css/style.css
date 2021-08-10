@@ -10,6 +10,15 @@ body {
 }
 
 canvas {
-	width: 100%;
-	height: 100%;
+	width: 800px;
+	height: 600px;
+}
+
+#canvasContainer {
+	
+	position: absolute;
+	left:50%;
+	top:50%;
+	margin-top: -300px;
+	margin-left: -400px;
 }

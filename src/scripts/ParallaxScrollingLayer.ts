@@ -1,10 +1,17 @@
 import * as PIXI from 'pixi.js'
 
 
-export class ParallaxScrollingLayer extends PIXI.Container {
+import { PIXIAnimatable } from './PIXIAppEngine';
+
+type ParallaxScrollingSpriteReposition = (sprite: PIXI.Sprite) => void;
+
+export class ParallaxScrollingLayer extends PIXI.Container implements PIXIAnimatable {
 
     public fieldSize: PIXI.Rectangle;
     public fieldDirection: PIXI.Point
+
+
+    public respositionCallback: ParallaxScrollingSpriteReposition | null
     constructor(fieldSize: PIXI.Rectangle, fieldDirection: PIXI.Point) {
         super();
         this.fieldSize = fieldSize;
@@ -13,6 +20,8 @@ export class ParallaxScrollingLayer extends PIXI.Container {
     public addSprite(sprite: PIXI.Sprite, x: number, y: number) {
         this.addChild(sprite);
         sprite.position.set(x, y)
+
+        return sprite
 
     }
     public update(timeDelta: number) {
@@ -29,18 +38,22 @@ export class ParallaxScrollingLayer extends PIXI.Container {
             sprite.x += this.fieldDirection.x * timeDelta;
             sprite.y += this.fieldDirection.y * timeDelta;
 
-            if (sprite.x + sprite.width < left) {
-                sprite.x = right + sprite.width
+            if (this.fieldDirection.x < 0 && (sprite.x + sprite.width < left)) {
+                sprite.x = right;
+                if (this.respositionCallback) this.respositionCallback(sprite)
             }
-            else if (sprite.x - sprite.width > right) {
-                sprite.x = left + sprite.width
+            else if (this.fieldDirection.x > 0 && (sprite.x - sprite.width > right)) {
+                sprite.x = left - sprite.width
+                if (this.respositionCallback) this.respositionCallback(sprite)
             }
 
-            else if (sprite.y + sprite.height < top) {
-                sprite.y = bottom + sprite.height
+            else if (this.fieldDirection.y < 0 && (sprite.y + sprite.height < top)) {
+                sprite.y = bottom
+                if (this.respositionCallback) this.respositionCallback(sprite)
             }
-            else if (sprite.y - sprite.height > bottom) {
-                sprite.y = top + sprite.height
+            else if (this.fieldDirection.y > 0 && (sprite.y - sprite.height > bottom)) {
+                sprite.y = top - sprite.height
+                if (this.respositionCallback) this.respositionCallback(sprite)
             }
 
 
