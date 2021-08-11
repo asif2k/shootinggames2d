@@ -27,7 +27,7 @@ export default class ShootingGamesApp extends AppEngine {
         fpsDisplay.style.position = "absolute";
 
         fpsDisplay.style.color = "#ffffff";
-        fpsDisplay.style.fontSize = "26px"
+        fpsDisplay.style.fontSize = "22px"
 
 
         this.container.appendChild(fpsDisplay)
@@ -64,10 +64,11 @@ export default class ShootingGamesApp extends AppEngine {
             // load texture atlas and all required texture frames are parsed
             // a more shopisticated texture atlas management could be implemented with more time
             const mainTextureAtlas = new TextureAtlas(resources.mainTextureAtlas?.texture.baseTexture as any)
-            mainTextureAtlas.addFrame("startfield", 0, 64, 256, 192)
+            mainTextureAtlas.addFrame("startfield", 0, 128, 256, 192)
             mainTextureAtlas.addFramesList("asteroid", 0, 0, 24, 24, 46, 24);
             mainTextureAtlas.addFramesList("smoke", 46, 0, 24, 24, 24 * 14, 24);
             mainTextureAtlas.addFrame("button", 32, 32, 92, 32)
+            mainTextureAtlas.addFrame("logo", 128, 32, 64, 64)
             mainTextureAtlas.addFramesList("missile", 0, 24, 24, 12, 24, 24);
             mainTextureAtlas.addFrame("splash", 32 * 9, 64, 32 * 7, 32 * 7);
             mainTextureAtlas.addFramesList("spaceship", 0, 384, 64, 64, 512, 64);

@@ -1,10 +1,16 @@
 import * as PIXI from 'pixi.js'
 
+//texture packer could also be used but needed to implement its parsing and handling
+
+
+// simple texture atlas class to manage texture atlas and frames inside it
 export class TextureAtlas {
     public frames = new Map<string, PIXI.Texture>();
     public baseTexture: PIXI.BaseTexture
     public allFrames: PIXI.Texture[] = []
 
+
+    // add frame with the key and position and size on the texture atlas
     public addFrame(key: string, x: number, y: number, width: number, height: number): PIXI.Texture {
         const frame = new PIXI.Texture(this.baseTexture, new PIXI.Rectangle(x, y, width, height));
         this.frames.set(key, frame)

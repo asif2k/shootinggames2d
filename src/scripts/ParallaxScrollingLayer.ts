@@ -4,10 +4,17 @@ import * as PIXI from 'pixi.js'
 import { PIXIAnimatable } from './PIXIScene';
 
 
+
+//callback when sprite goes out of the view port
 type ParallaxScrollingSpriteReposition = (sprite: PIXI.Sprite) => void;
+
+
+//special parallax scrolling layer object that can scroll objects in any direction and speed
 
 export class ParallaxScrollingLayer extends PIXI.Container implements PIXIAnimatable {
 
+
+    //field size and direction to identify when sprite goes out of view port
     public fieldSize: PIXI.Rectangle;
     public fieldDirection: PIXI.Point
 
@@ -19,6 +26,8 @@ export class ParallaxScrollingLayer extends PIXI.Container implements PIXIAnimat
         this.fieldDirection = fieldDirection;
     }
 
+
+    // add sprites at random positions and scales
     public addSpritesRandom(texture: PIXI.Texture, count: number) {
         let sc = 1;
         for (let i = 0; i < count; i++) {
@@ -43,6 +52,8 @@ export class ParallaxScrollingLayer extends PIXI.Container implements PIXIAnimat
         let bottom = top + this.fieldSize.height;
 
 
+
+        //sprites scrolling logic
         for (let i = 0; i < this.children.length; i++) {
             sprite = this.children[i] as PIXI.Sprite;
             sprite.x += this.fieldDirection.x * timeDelta;
@@ -72,12 +83,4 @@ export class ParallaxScrollingLayer extends PIXI.Container implements PIXIAnimat
 
 
     }
-
-
-
-
-
-
-
-
 }

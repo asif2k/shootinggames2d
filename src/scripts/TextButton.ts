@@ -1,8 +1,11 @@
 import * as PIXI from 'pixi.js'
 
 //generic textbutton that are used to display clickable text on screen
+
+
+
 export class TextButton extends PIXI.Text {
-    static labelStyle = new PIXI.TextStyle({
+    static textButtonStyle = new PIXI.TextStyle({
         fontFamily: 'Arial',
         fontSize: 36,
         fontStyle: 'italic',
@@ -20,13 +23,13 @@ export class TextButton extends PIXI.Text {
         lineJoin: 'round',
     });
     constructor(label: string, onClick: () => void) {
-        super(label, TextButton.labelStyle)
+        super(label, TextButton.textButtonStyle)
         this.interactive = true
         this.buttonMode = true
         this.anchor.set(0.5)
 
         this.on('pointerover', () => {
-            this.tint = 0xFF0000;
+            this.tint = 0x00FF00;
         })
         this.on('touchstart', () => {
             this.tint = 0xFF0000;
@@ -50,3 +53,19 @@ export class TextButton extends PIXI.Text {
 
     }
 }
+
+export class TextLabel extends PIXI.Text {
+    static textLabelStyle = new PIXI.TextStyle({
+        fontFamily: 'Arial',
+        fontSize: 26,
+        fontStyle: 'italic',
+        fontWeight: 'bold',
+        fill: ['#ffffff', '#00ff99'],
+    });
+    constructor(label: string) {
+        super(label, TextLabel.textLabelStyle)
+        this.anchor.set(0.5)
+
+    }
+}
+

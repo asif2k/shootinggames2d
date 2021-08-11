@@ -143,7 +143,8 @@ export default class Game1Scene extends ShootingGamesScene {
         }
 
         if (app.keys[KEYS.KEY_SPACE]) {
-            if (this.engine.clock - this.playermissileTime > 0.15) {
+            //fire missile at every 0.2 of second
+            if (this.engine.clock - this.playermissileTime > 0.2) {
                 this.firePlayermissile()
                 this.playermissileTime = this.engine.clock
             }
@@ -228,7 +229,7 @@ export default class Game1Scene extends ShootingGamesScene {
         if (!en) return;
         en.position.set(this.engine.renderer.width, Math.random() * this.engine.renderer.height);
         en.velX = -150;
-        en.accX = (Math.random() * 60) + 25;
+        en.accX = (Math.random() * 90) + 25;
         en.accY = (Math.random() * 500) + 200;
         en.playerPosition = this.player.position
         en.renderable = true;
