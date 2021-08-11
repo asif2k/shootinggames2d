@@ -3,20 +3,21 @@ import * as PIXI from 'pixi.js'
 
 
 import { AppEngine } from './PIXIAppEngine';
-import { TextMenuScene } from './MenuScene';
+import { MainMenuScene } from './MenuScene';
 
 import { TextureAtlas } from './TextureAtlas';
-import { ParticlesSystem } from './ParticlesSystem';
+
 import { InitParticleEffects } from './ShootingGamesParticleEffects';
 import { ParallaxScrollingLayer } from './ParallaxScrollingLayer';
+import Game1Scene from './Game1Scene';
+import ShootingGamesScene from './ShootingGamesScene';
 
-
+//main shooting game application class that create and launch all the scene and manage global game loop
 
 export default class ShootingGamesApp extends AppEngine {
+
     constructor(container: HTMLElement) {
         super(container);
-        console.log(this);
-
     }
     public launch() {
 
@@ -31,32 +32,22 @@ export default class ShootingGamesApp extends AppEngine {
 
         this.container.appendChild(fpsDisplay)
 
-        const menu = this.addScene("menu", new TextMenuScene(this)) as TextMenuScene;
+        const menu = this.addScene("menu", new MainMenuScene(this)) as MainMenuScene;
+        const game1 = this.addScene("game1", new Game1Scene(this)) as Game1Scene;
+
+
 
         const loader = new PIXI.Loader()
 
-        //const particleSystem: ParticleSystem = new ParticleSystem();
-
-        loader.add('globbalTextureAtlas', 'images/particle-fire.png');
-        loader.add('starfield', 'images/starfield.png');
-        //particleSystem.addEmitter("fire",new ParticleEmitter())
 
 
+        loader.add('mainTextureAtlas', 'images/texture-atlas.png');
 
 
-        menu.add("FULL SCREEN", () => {
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            }
-        })
-
-
-
-
-
-
-
+        // activate menu scene in the start
         this.setActiveScene("menu")
+
+
         fpsDisplay.style.left = "0";
         fpsDisplay.style.top = "50%";
         fpsDisplay.style.width = "100%";
@@ -70,82 +61,67 @@ export default class ShootingGamesApp extends AppEngine {
         this.initAllScene(loader)
         loader.load((loader, resources: Partial<Record<string, PIXI.LoaderResource>>) => {
 
-            const mainTextureAtlas = new TextureAtlas(resources.globbalTextureAtlas?.texture.baseTexture as any)
-            mainTextureAtlas.prepareAllFrames("tile", 64, 64)
+            // load texture atlas and all required texture frames are parsed
+            // a more shopisticated texture atlas management could be implemented with more time
+            const mainTextureAtlas = new TextureAtlas(resources.mainTextureAtlas?.texture.baseTexture as any)
+            mainTextureAtlas.addFrame("startfield", 0, 64, 256, 192)
+            mainTextureAtlas.addFramesList("asteroid", 0, 0, 24, 24, 46, 24);
+            mainTextureAtlas.addFramesList("smoke", 46, 0, 24, 24, 24 * 14, 24);
+            mainTextureAtlas.addFrame("button", 32, 32, 92, 32)
+            mainTextureAtlas.addFramesList("missile", 0, 24, 24, 12, 24, 24);
+            mainTextureAtlas.addFrame("splash", 32 * 9, 64, 32 * 7, 32 * 7);
+            mainTextureAtlas.addFramesList("spaceship", 0, 384, 64, 64, 512, 64);
+            mainTextureAtlas.addFramesList("explosion", 0, 480, 32, 32, 512, 32);
 
-            console.log(mainTextureAtlas);
 
+            //initialize global particle effects and their emitters
             InitParticleEffects(mainTextureAtlas)
 
+
+            game1.mainTextureAtlas = mainTextureAtlas
+            menu.mainTextureAtlas = mainTextureAtlas
+
+
+
             this.buildAllScene(resources)
+
+            // setup a background scene to display animated starfield using parallax scrolling layer
+            const backgroundScene = new ShootingGamesScene(this);
+            const startfieldLayer = new ParallaxScrollingLayer(new PIXI.Rectangle(0, 0, this.renderer.width, this.renderer.height), new PIXI.Point(-20, 0))
+
+            const startfieldTexture = mainTextureAtlas.getFrame("startfield")
+
+            startfieldLayer.addSprite(new PIXI.Sprite(startfieldTexture), 0, 0).scale.set(4, 4)
+            startfieldLayer.addSprite(new PIXI.Sprite(startfieldTexture), 800, 0).scale.set(4, 4)
+
+            const asteroidLayer1 = new ParallaxScrollingLayer(new PIXI.Rectangle(0, 0, this.renderer.width, this.renderer.height), new PIXI.Point(-30, 0))
+            const asteroidLayer2 = new ParallaxScrollingLayer(new PIXI.Rectangle(0, 0, this.renderer.width, this.renderer.height), new PIXI.Point(-40, 0))
+
+            asteroidLayer1.addSpritesRandom(mainTextureAtlas.getFrame("asteroid-0"), 30);
+            asteroidLayer2.addSpritesRandom(mainTextureAtlas.getFrame("asteroid-1"), 30);
+            backgroundScene.addChildren(startfieldLayer, asteroidLayer1, asteroidLayer2)
+            backgroundScene.addAnimateables(startfieldLayer, asteroidLayer1, asteroidLayer2);
+
+
+            //start the game loop
+            this.start((timeDelta: number) => {
+                this.renderer.clearBeforeRender = true;
+
+                //update and render the background scene
+                backgroundScene.update(timeDelta);
+                this.renderer.render(backgroundScene)
+
+
+            });
+
             fpsDisplay.style.left = "10px";
             fpsDisplay.style.top = "10px";
             fpsDisplay.style.width = "auto";
-
-
-
-            const par = new ParticlesSystem();
-
-            console.log(par);
-            menu.addChild(par);
-            par.x = this.renderer.width * 0.5;
-            par.y = this.renderer.height * 0.5;
-            par.spawnEmitterInstance("fire", 100, 20);
-
-
-            const l1 = new ParallaxScrollingLayer(new PIXI.Rectangle(0, 0, this.renderer.width, this.renderer.height), new PIXI.Point(-55, 0))
-
-            const l2 = new ParallaxScrollingLayer(new PIXI.Rectangle(0, 0, this.renderer.width, this.renderer.height), new PIXI.Point(0, 145))
-
-            const l3 = new ParallaxScrollingLayer(new PIXI.Rectangle(0, 0, this.renderer.width, this.renderer.height), new PIXI.Point(-20, 0))
-
-
-            let i = 0;
-            for (i = 0; i < 60; i++) {
-                l1.addSprite(new PIXI.Sprite(mainTextureAtlas.allFrames[0]), Math.random() * 800, Math.random() * 600)
-
-            }
-
-            for (i = 0; i < 10; i++) {
-                l2.addSprite(new PIXI.Sprite(mainTextureAtlas.allFrames[6]), Math.random() * 800, Math.random() * 600)
-
-            }
-
-            l1.respositionCallback = (sprite: PIXI.Sprite) => {
-                sprite.y = Math.random() * this.renderer.height
-                sprite.x += Math.random() * 100
-            }
-
-            l3.addSprite(new PIXI.Sprite(resources.starfield?.texture), 0, 0)
-            const sp1 = l3.addSprite(new PIXI.Sprite(resources.starfield?.texture), 800, 0)
-            sp1.tint = 0xFFFFFF
-
-            menu.addChild(l1)
-            menu.addChild(l2)
-            menu.addChild(l3)
-
-            console.log(this);
-            menu.timers.create((time: number): boolean => {
-
-
-                if (time < 10) return true
-                else return false
-
-
-            }, 0.25)
-
-            menu.addAnimateables(l1, l2, l3, par)
-
-            this.start((timeDelta: number) => {
-                // par.update(timeDelta);
-                // l1.update(timeDelta)
-                // l2.update(timeDelta)
-                // l3.update(timeDelta)
-            })
-
             setInterval(() => {
                 fpsDisplay.innerHTML = `${this.currentFps} fps`
             }, 200)
+
+
 
 
         })

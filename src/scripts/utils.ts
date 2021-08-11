@@ -53,3 +53,12 @@ export const GuidInteger = (function () {
         return (Date.now() + guidCounter++);
     }
 })();
+
+
+export function Distance2d(x1: number, y1: number, x2: number, y2: number) {
+    x1 = x2 - x1;
+    y1 = y2 - y1;
+
+    return Math.abs(Math.sqrt(x1 * x1 + y1 * y1))
+
+}

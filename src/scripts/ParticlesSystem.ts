@@ -2,6 +2,14 @@ import * as PIXI from "pixi.js";
 
 import { ObjectsPool, GuidInteger } from "./utils";
 
+import { PIXIAnimatable } from "./PIXIScene";
+
+
+/*
+expandable particle system is created to manage different kind of effects that can be reused in any game
+*/
+
+
 //sprite class for every partical
 export class ParticleSprite extends PIXI.Sprite {
     public age: number = 0;
@@ -16,6 +24,8 @@ export class ParticleSprite extends PIXI.Sprite {
     public pScale: number = 0;
 }
 
+
+// callbacks to create different kind of particle effects
 type ParticleEmitterCreator = (
     clock: number,
     emitterInstance: ParticleEmitterInstance
@@ -25,7 +35,11 @@ type ParticleEmitterProcessor = (
     emitterInstance: ParticleEmitterInstance
 ) => void;
 
+
+// global particle emitters that manages all the instances of the its emitters
 export class ParticleEmitter {
+
+    //emitter instances pool to reuse the expired particle emitter instances
     public pool: ObjectsPool;
 
     public creator: ParticleEmitterCreator;
@@ -54,14 +68,17 @@ export class ParticleEmitter {
     }
 }
 
+
+// particle emitter instance class that help emit particle on the screen
 export class ParticleEmitterInstance {
     public emitter: ParticleEmitter;
     public spritePool: ObjectsPool;
     public active: boolean = false;
-
+    public paused: boolean = false;
     public uid: number = 0;
     public lastClock: number = 0;
     public age: number = Infinity;
+    public maxParticles: number = 0;
     public ageDecay: number = 0;
     public activeSpriteCount: number = 0;
     public sprites: ParticleSprite[] = [];
@@ -74,7 +91,8 @@ export class ParticleEmitterInstance {
     constructor(emitter: ParticleEmitter, maxParticles: number = 10) {
         this.uid = GuidInteger();
         this.emitter = emitter;
-        //generate the sprite object when needed
+        this.maxParticles = maxParticles;
+
         this.spritePool = new ObjectsPool(() => {
             const spr = new ParticleSprite();
             this.sprites.push(spr);
@@ -93,6 +111,7 @@ export class ParticleEmitterInstance {
             if (spr.visible) this.freeSprite(spr);
         }
         this.active = true;
+        this.spritePool.poolSize = this.maxParticles;
         this.lastClock = 0;
     }
 
@@ -120,6 +139,12 @@ export class ParticleEmitterInstance {
     public setDecay(ageDecay: number): ParticleEmitterInstance {
         this.ageDecay = ageDecay;
         return this;
+    }
+
+    public setPosition(x: number, y: number): ParticleEmitterInstance {
+        this.position.x = x;
+        this.position.y = y;
+        return this
     }
 
     public update(timeDelta: number) {
@@ -155,28 +180,36 @@ export class ParticleEmitterInstance {
     }
 }
 
-export class ParticlesSystem extends PIXI.Container {
+
+//particle system that manages all the running instances and global emitters declarations
+
+export class ParticlesSystem extends PIXI.Container implements PIXIAnimatable {
+
+    //global repo of all kind of particle emitters
     public static emitters = new Map<string, ParticleEmitter>();
 
-    public static createEmitter(
-        key: string,
-        emitter: ParticleEmitter
-    ): ParticleEmitter {
+    public static createEmitter(key: string, emitter: ParticleEmitter): ParticleEmitter {
         this.emitters.set(key, emitter);
-        console.log(this.emitters);
+
         return emitter;
     }
     public clock: number = 0;
+
+    //  link list to manage all running particle emitter instances, 
+    //link list is used because when particle instances expired it needs to be deteched from loop and saved in pool to be reused
     public emittersInstances: ParticleEmitterInstance | null;
 
     public spawnEmitterInstance(
-        key: string,
-        age: number,
-        maxParticles: number = 10
+        key: string, // key in the global repo of emitters
+        age: number, // age of emitter instance
+        maxParticles: number = 10 // max number particles this emiiter can support
     ): ParticleEmitterInstance {
+
         const emitter = ParticlesSystem.emitters.get(key) as ParticleEmitter;
 
-        const ins = emitter.pool.get(maxParticles) as ParticleEmitterInstance;
+
+        const ins = emitter.pool.get() as ParticleEmitterInstance;
+        ins.maxParticles = maxParticles
         ins.age = age;
         ins.activate();
         ins.host = this;
@@ -190,11 +223,17 @@ export class ParticlesSystem extends PIXI.Container {
 
         return ins;
     }
+
+    //update every instance and when age of emitter instance become zero it detected from the loop
     public update(timeDelta: number) {
         let ins = this.emittersInstances;
         let removeIns;
 
         while (ins) {
+            if (ins.paused) {
+                ins = ins.nextLink;
+                continue
+            }
             if (ins.age > 0) {
                 ins.emitter.creator(this.clock, ins);
                 ins.age -= ins.ageDecay;

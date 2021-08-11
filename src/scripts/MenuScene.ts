@@ -1,81 +1,69 @@
-
 import * as PIXI from 'pixi.js'
-import { PIXIScene, AppEngine } from './PIXIAppEngine';
+import ShootingGamesScene from './ShootingGamesScene';
 
-//generic textbutton that are used to display clickable text on screen
-export class TextButton extends PIXI.Text {
-    static labelStyle = new PIXI.TextStyle({
-        fontFamily: 'Arial',
-        fontSize: 36,
-        fontStyle: 'italic',
-        fontWeight: 'bold',
-        fill: ['#ffffff', '#00ff99'],
-        stroke: '#4a1850',
-        strokeThickness: 5,
-        dropShadow: true,
-        dropShadowColor: '#000000',
-        dropShadowBlur: 4,
-        dropShadowAngle: Math.PI / 6,
-        dropShadowDistance: 6,
-        wordWrap: true,
-        wordWrapWidth: 440,
-        lineJoin: 'round',
-    });
-    constructor(label: string, onClick: () => void) {
-        super(label, TextButton.labelStyle)
-        this.interactive = true
-        this.buttonMode = true
-        this.anchor.set(0.5)
+import { TextButton } from './TextButton';
 
-        this.on('pointerover', () => {
-            this.tint = 0xFF0000;
-        })
-        this.on('touchstart', () => {
-            this.tint = 0xFF0000;
-        })
+// Main menu scene that launch the game
+export class MainMenuScene extends ShootingGamesScene {
+    public buttons: PIXI.Sprite
 
-        this.on('click', () => {
-            onClick();
-        })
-
-        this.on('touchend', () => {
-            this.tint = 0xFFFFFF;
-            onClick();
-        })
-
-        this.on('pointerout', () => {
-            this.tint = 0xFFFFFF;
-        })
+    public buttonsHeight: number = 0;
+    public createMenuButton(lable: string, onClick: () => void) {
 
 
+        const button = new PIXI.Sprite();
+        const buttonBack = new PIXI.Sprite(this.mainTextureAtlas.getFrame("button"));
+        button.anchor.set(0.5, 0.5)
+        buttonBack.anchor.set(0.5, 0.5)
+        button.addChild(buttonBack)
+        button.addChild(new TextButton(lable, onClick))
 
+
+        this.buttons.addChild(button);
+        buttonBack.scale.set(3, 3)
+        button.y = this.buttons.children.length * (buttonBack.height * 0.75)
+        this.buttonsHeight = button.y + buttonBack.height;
 
     }
-}
 
 
+    public build(resources: Partial<Record<string, PIXI.LoaderResource>>) {
 
-//generic menu scene class that display vertical menu using textbuttons
-export class TextMenuScene extends PIXIScene {
-    public buttons = new PIXI.Sprite()
-    constructor(engine: AppEngine) {
-        super(engine)
+        this.buttons = new PIXI.Sprite();
 
+        const gotoGame1 = () => {
+            this.engine.setActiveScene("game1");
+        }
+
+
+        this.createMenuButton("GAME1", gotoGame1)
+        this.createMenuButton("GAME2", gotoGame1)
+        this.createMenuButton("GAME3", gotoGame1)
+        this.createMenuButton("EXIT", () => {
+
+        })
         this.addChild(this.buttons)
-        this.buttons.anchor.set(0.5);
+        this.buttons.anchor.set(0.5, 0.5)
 
+        this.buttons.x = (this.engine.renderer.width / 2) - (this.buttons.width / 2)
+        this.buttons.y = (this.engine.renderer.height / 2) - (this.buttonsHeight / 2)
 
-    }
-    public resize(width: number, height: number) {
-        this.buttons.x = (width / 2) - (this.buttons.width / 2)
-        this.buttons.y = (height / 2) - (this.buttons.height / 2)
+        const splash = new PIXI.Sprite(this.mainTextureAtlas.getFrame("splash"));
+        splash.anchor.set(0.5, 0.5);
+        splash.scale.set(2, 2)
+        this.addChild(splash)
 
-    }
-    public add(label: string, onClick: () => void): PIXI.Sprite {
-        const button = new TextButton(label, onClick)
-        button.y = this.buttons.children.length * 60
-        this.buttons.addChild(button)
-        return button;
+        splash.x = (this.engine.renderer.width / 2);
+        splash.y = (this.engine.renderer.height / 2);
+
+        //create timer to fade out the splash screen
+        this.timers.create((time: number) => {
+            if (time > 2) {
+                splash.alpha -= 0.05;
+            }
+            if (splash.alpha <= 0) return false
+            return true
+
+        }, 0.25 * 0.3);
     }
 }
-

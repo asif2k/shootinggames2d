@@ -1,107 +1,9 @@
 import * as PIXI from 'pixi.js'
-import { ObjectsPool } from './utils';
-
-
-type PIXISceneTimerCallback = (time: number) => boolean;
-
-export class PIXISceneTimer {
-    public callback: PIXISceneTimerCallback
-    public interval: number
-    public createdTime: number
-    public lastTickClock: number
-    public active: boolean
-
-}
-
-
-export class PIXISceneTimers {
-
-    public allTimers: PIXISceneTimer[] = []
-    public timersPool = new ObjectsPool(() => {
-        const timer = new PIXISceneTimer()
-        this.allTimers.push(timer);
-        return timer
-    });
-
-    public create(callback: PIXISceneTimerCallback, interval: number = 1) {
-
-
-        const timer = this.timersPool.get() as PIXISceneTimer
-
-        timer.active = true;
-        timer.interval = interval;
-        timer.callback = callback
-        timer.lastTickClock = 0
-        timer.createdTime = -1;
-
-    }
-
-    public update(clock: number) {
-        let timer;
-        for (let i = 0; i < this.allTimers.length; i++) {
-            timer = this.allTimers[i];
-            if (timer.active) {
-                if (timer.createdTime === -1) timer.createdTime = clock
-                if (clock - timer.lastTickClock >= timer.interval) {
-                    if (timer.callback(clock - timer.createdTime) !== true) {
-                        timer.active = false;
-                        this.timersPool.free(timer)
-                    }
-                    timer.lastTickClock = clock
-                }
-            }
 
 
 
-        }
+import { PIXIScene } from './PIXIScene';
 
-    }
-
-}
-
-
-export interface PIXIAnimatable {
-    update: (timeDelta: number) => void;
-}
-
-//base scene class to manage seperate demos
-export class PIXIScene extends PIXI.Container {
-    public engine: AppEngine
-    public timers: PIXISceneTimers = new PIXISceneTimers()
-    public animatables: PIXIAnimatable[] = []
-
-    public constructor(engine: AppEngine) {
-        super()
-        this.engine = engine
-    }
-    public activated() {
-
-    }
-    public update(timeDelta: number) {
-        this.timers.update(this.engine.clock);
-
-        for (let i = 0; i < this.animatables.length; i++) {
-            this.animatables[i].update(timeDelta)
-        }
-
-    }
-    public resize(width: number, height: number) {
-    }
-
-    public addAnimateables(...items: PIXIAnimatable[]) {
-        for (let i = 0; i < items.length; i++)
-            this.animatables.push(items[i])
-    }
-
-    public build(resources: Partial<Record<string, PIXI.LoaderResource>>) {
-
-    }
-
-    public init(loader: PIXI.Loader) {
-
-    }
-
-}
 
 
 
@@ -115,6 +17,7 @@ export class AppEngine {
     public active: boolean = true
     public currentScene: PIXIScene | undefined = undefined
     public scenes = new Map<string, PIXIScene>()
+    public keys: boolean[] = []
     private requiredTimeDelta: number = 1 / 60
     public currentFps = 0
     public clock = 0;
@@ -129,6 +32,17 @@ export class AppEngine {
             this.resize();
         }, 10);
         this.setRequiredFps(120)
+
+        // update keys array so when particular key is down or up
+        document.addEventListener('keydown', (e) => {
+            this.keys[e.keyCode] = true;
+        });
+
+        document.addEventListener('keyup', (e: KeyboardEvent) => {
+            this.keys[e.keyCode] = false;
+
+        });
+
     }
 
     public setRequiredFps(fps: number) {
@@ -199,6 +113,7 @@ export class AppEngine {
             render(currentTimeDelta)
             if (this.currentScene) {
                 this.currentScene.update(currentTimeDelta)
+                this.renderer.clearBeforeRender = false;
                 this.renderer.render(this.currentScene)
             }
             lastTime = currentTime - (currentTimeDelta % this.requiredTimeDelta);

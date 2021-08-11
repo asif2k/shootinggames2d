@@ -38,6 +38,20 @@ export class TextureAtlas {
         return textures
     }
 
+    public getFramesListByPrefix(prefix: string) {
+
+        const textures: PIXI.Texture[] = []
+
+        this.frames.forEach((texture: PIXI.Texture, key: string) => {
+
+            if (key.indexOf(prefix) > -1) {
+                textures.push(texture)
+            }
+        });
+
+        return textures
+    }
+
     public getFrame(key: string): PIXI.Texture {
         return this.frames.get(key) as PIXI.Texture
     }

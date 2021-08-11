@@ -1,7 +1,8 @@
 import * as PIXI from 'pixi.js'
 
 
-import { PIXIAnimatable } from './PIXIAppEngine';
+import { PIXIAnimatable } from './PIXIScene';
+
 
 type ParallaxScrollingSpriteReposition = (sprite: PIXI.Sprite) => void;
 
@@ -16,6 +17,15 @@ export class ParallaxScrollingLayer extends PIXI.Container implements PIXIAnimat
         super();
         this.fieldSize = fieldSize;
         this.fieldDirection = fieldDirection;
+    }
+
+    public addSpritesRandom(texture: PIXI.Texture, count: number) {
+        let sc = 1;
+        for (let i = 0; i < count; i++) {
+            sc = (Math.random() * 0.25) + 0.25
+            this.addSprite(new PIXI.Sprite(texture), this.fieldSize.width * Math.random(), this.fieldSize.height * Math.random())
+                .scale.set(sc, sc)
+        }
     }
     public addSprite(sprite: PIXI.Sprite, x: number, y: number) {
         this.addChild(sprite);
