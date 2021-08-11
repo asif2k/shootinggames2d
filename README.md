@@ -30,6 +30,6 @@ game developed using typescript , pixijs and webpack , game is divided into diff
 
 For better texture memory and speed only one large texture atlas is implemented that stores all the textures used in the game. packing all textures in one big texture is a technique used to games and application , because texture switching in webgl is a expensive operation , but using texture atlas only one texture is used all the time.
 
-
+Sprite textures are used from https://opengameart.org/
 
 [Game Demo](https://asif2k.github.io/portfolio/spaceshooter2d/)
