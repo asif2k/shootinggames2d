@@ -3,8 +3,8 @@ import { ParticleEmitter, ParticlesSystem, ParticleEmitterInstance, ParticleSpri
 
 import { TextureAtlas } from './TextureAtlas';
 
+export function InitParticleEffects(textureAtlas: TextureAtlas) {
 
-function prepareFireEffects(textureAtlas: TextureAtlas) {
     const smokeTextures = textureAtlas.getFramesListByPrefix("smoke");
     const explosionTextures = textureAtlas.getFramesListByPrefix("explosion");
 
@@ -112,15 +112,5 @@ function prepareFireEffects(textureAtlas: TextureAtlas) {
                 emitterInstance.age = -1
             }
         }))
-
-
-}
-
-
-export function InitParticleEffects(textureAtlas: TextureAtlas) {
-
-    prepareFireEffects(textureAtlas)
-
-
 
 }

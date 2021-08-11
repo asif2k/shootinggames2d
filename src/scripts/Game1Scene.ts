@@ -111,9 +111,22 @@ export default class Game1Scene extends ShootingGamesScene {
             this.gameOverButton.renderable = false;
             this.gamePlayPaused = false
             this.player.position.set(100, 100)
+            this.player.velX = 0;
+            this.player.velY = 0;
 
-            for (let i = 0; i < this.activeEnemiesCount; i++) {
+            let i = 0;
+            for (i = 0; i < this.activeEnemiesCount; i++) {
                 this.freeEnemeyShip(this.activeEnemies[i]);
+
+            }
+
+            let missile
+            for (i = 0; i < this.missiles.length; i++) {
+                missile = this.missiles[i]
+                if (missile.renderable) {
+                    missile.renderable = false;
+                    this.missilesPool.free(missile)
+                }
 
             }
 
