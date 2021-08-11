@@ -68,7 +68,7 @@ export default class ShootingGamesApp extends AppEngine {
             mainTextureAtlas.addFramesList("asteroid", 0, 0, 24, 24, 46, 24);
             mainTextureAtlas.addFramesList("smoke", 46, 0, 24, 24, 24 * 14, 24);
             mainTextureAtlas.addFrame("button", 32, 32, 92, 32)
-            mainTextureAtlas.addFrame("logo", 128, 32, 64, 64)
+            mainTextureAtlas.addFrame("logo", 128, 32, 92, 32)
             mainTextureAtlas.addFramesList("missile", 0, 24, 24, 12, 24, 24);
             mainTextureAtlas.addFrame("splash", 32 * 9, 64, 32 * 7, 32 * 7);
             mainTextureAtlas.addFramesList("spaceship", 0, 384, 64, 64, 512, 64);
